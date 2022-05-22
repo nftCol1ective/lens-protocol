@@ -25,8 +25,8 @@ import {
   UIDataProvider__factory,
   ProfileFollowModule__factory,
   RevertFollowModule__factory,
-  ProfileCreationProxy__factory,
-} from '../typechain-types';
+  ProfileCreationProxy__factory, BtraxCollectModule__factory
+} from "../typechain-types";
 import { deployContract, waitForTx } from './helpers/utils';
 
 const TREASURY_FEE_BPS = 50;
@@ -143,6 +143,12 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
       nonce: deployerNonce++,
     })
   );
+  console.log('\n\t-- Deploying btraxCollectModule --');
+  const btraxCollectModule = await deployContract(
+    new BtraxCollectModule__factory(deployer).deploy(lensHub.address, moduleGlobals.address, {
+      nonce: deployerNonce++,
+    })
+  );
   console.log('\n\t-- Deploying limitedFeeCollectModule --');
   const limitedFeeCollectModule = await deployContract(
     new LimitedFeeCollectModule__factory(deployer).deploy(lensHub.address, moduleGlobals.address, {
@@ -228,6 +234,9 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     lensHub.whitelistCollectModule(feeCollectModule.address, true, { nonce: governanceNonce++ })
   );
   await waitForTx(
+    lensHub.whitelistCollectModule(btraxCollectModule.address, true, { nonce: governanceNonce++ })
+  );
+  await waitForTx(
     lensHub.whitelistCollectModule(limitedFeeCollectModule.address, true, {
       nonce: governanceNonce++,
     })
@@ -301,6 +310,7 @@ task('full-deploy', 'deploys the entire Lens Protocol').setAction(async ({}, hre
     'lens periphery': lensPeriphery.address,
     'module globals': moduleGlobals.address,
     'fee collect module': feeCollectModule.address,
+    'b.trax collect module': btraxCollectModule.address,
     'limited fee collect module': limitedFeeCollectModule.address,
     'timed fee collect module': timedFeeCollectModule.address,
     'limited timed fee collect module': limitedTimedFeeCollectModule.address,
